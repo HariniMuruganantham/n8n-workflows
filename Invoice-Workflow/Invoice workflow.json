@@ -1,0 +1,152 @@
+{
+  "name": "Invoice workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            { "mode": "everyMinute" }
+          ]
+        },
+        "triggerOn": "specificFile"
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "drive-trigger",
+      "name": "Google Drive Trigger",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [200, 0],
+      "id": "download-file",
+      "name": "Download file",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "operation": "pdf"
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [400, 0],
+      "id": "extract-pdf",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            { "name": "Invoice Number", "description": "Invoice number", "required": true },
+            { "name": "Client Name", "description": "Client name", "required": true },
+            { "name": "Client Email", "description": "Client email", "required": true },
+            { "name": "Client Address", "description": "Client address", "required": true },
+            { "name": "Client Phone", "description": "Client phone", "required": true },
+            { "name": "Total Amount", "description": "Total amount", "required": true },
+            { "name": "Invoice Date", "description": "Invoice date", "required": true },
+            { "name": "Due Date", "description": "Due date", "required": true }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [600, 0],
+      "id": "info-extractor",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice Number": "={{ $json.output['Invoice Number'] }}",
+            "Client Name": "={{ $json.output['Client Name'] }}",
+            "Client Email": "={{ $json.output['Client Email'] }}",
+            "Client Address": "={{ $json.output['Client Address'] }}",
+            "Client Phone": "={{ $json.output['Client Phone'] }}",
+            "Total Amount": "={{ $json.output['Total Amount'] }}",
+            "Invoice Date": "={{ $json.output['Invoice Date'] }}",
+            "Due Date": "={{ $json.output['Due Date'] }}"
+          },
+          "matchingColumns": ["Invoice Number"]
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [900, 0],
+      "id": "append-sheet",
+      "name": "Append or update row in sheet",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Subject: New Invoice Received\n\nEmail:\n\nInvoice Number: {{ $json['Invoice Number'] }}\nClient: {{ $json['Client Name'] }}\nAmount: {{ $json['Total Amount'] }}\nDue: {{ $json['Due Date'] }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [1100, 0],
+      "id": "generate-mail",
+      "name": "Message a model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.BILLING_TEAM_EMAIL }}",
+        "subject": "={{ $json.output[0].content[0].text.Subject }}",
+        "message": "={{ $json.output[0].content[0].text.Email }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1300, 0],
+      "id": "send-mail",
+      "name": "Send a message",
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [[{ "node": "Download file", "type": "main", "index": 0 }]]
+    },
+    "Download file": {
+      "main": [[{ "node": "Extract from File", "type": "main", "index": 0 }]]
+    },
+    "Extract from File": {
+      "main": [[{ "node": "Information Extractor", "type": "main", "index": 0 }]]
+    },
+    "Information Extractor": {
+      "main": [[{ "node": "Append or update row in sheet", "type": "main", "index": 0 }]]
+    },
+    "Append or update row in sheet": {
+      "main": [[{ "node": "Message a model", "type": "main", "index": 0 }]]
+    },
+    "Message a model": {
+      "main": [[{ "node": "Send a message", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

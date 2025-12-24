@@ -1,0 +1,123 @@
+{
+  "name": "Customer Support Service",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            { "mode": "everyMinute" }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0],
+      "id": "d108705e-0cd4-4713-895a-20878b781a4f",
+      "name": "Gmail Trigger",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "customer support",
+              "description": "Emails related to customer policy questions or support requests."
+            },
+            {
+              "category": "others",
+              "description": "All non-support related emails."
+            }
+          ]
+        },
+        "options": { "enableAutoFixing": true }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [208, 0],
+      "id": "9a5da249-2854-4746-9b77-5f0a990bd89a",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Gmail Trigger').item.json.text }}",
+        "options": {
+          "systemMessage": "You are a customer support agent. Reply clearly and professionally using the knowledge base. Sign off as Support Team."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [576, -208],
+      "id": "0aa069ec-5d52-44b8-939b-4afa67bc2396",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [576, -48],
+      "id": "9f911afe-cf06-4851-b312-1de097d26d21",
+      "name": "OpenAI Chat Model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Knowledge base vector store",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [720, -32],
+      "id": "eaa801e8-43fa-4c0e-b138-fe89bfd48e2d",
+      "name": "Pinecone Vector Store",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [928, -208],
+      "id": "76d0dd99-b5ba-47f1-beca-41f1879573bd",
+      "name": "Reply to a message",
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [[{ "node": "Text Classifier", "type": "main", "index": 0 }]]
+    },
+    "Text Classifier": {
+      "main": [
+        [{ "node": "AI Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [{ "node": "AI Agent", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "AI Agent": {
+      "main": [[{ "node": "Reply to a message", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "meta": { "templateCredsSetupCompleted": false }
+}

@@ -1,0 +1,163 @@
+{
+  "name": "AI news digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "f4516169-81f4-45e1-be02-4fad2d03d41c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "model": "sonar-pro",
+        "messages": {
+          "message": [
+            {
+              "content": "You are an expert AI research analyst specialized in tracking and summarizing the latest developments in artificial intelligence. Deliver concise, up-to-date news summaries on new AI model releases, research breakthroughs, and strategic moves by key AI players.",
+              "role": "system"
+            },
+            {
+              "content": "Search for today's latest AI news. For each item include headline, one-sentence summary, source name, and full URL. Format output in a Gmail friendly table."
+            }
+          ]
+        },
+        "options": {
+          "searchRecency": "day"
+        }
+      },
+      "type": "n8n-nodes-base.perplexity",
+      "typeVersion": 1,
+      "position": [
+        0,
+        96
+      ],
+      "id": "8eec8501-58e0-4adc-b7b6-2d562b5a8c37",
+      "name": "Message a model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Here is today’s AI news list:\n{{ $json.choices[0].message.content }}\nRemove duplicates by checking against the Past AI News Log. If all items are duplicates respond: \"No notable AI development news in the past 24 hours\"."
+            },
+            {
+              "role": "system",
+              "content": "You are an AI news formatter. Remove duplicate items based on the Past AI News Log tool."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        96
+      ],
+      "id": "86fa464c-c7b0-49ab-9395-bf5476570f60",
+      "name": "News Checking Agent",
+      "credentials": {}
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        288
+      ],
+      "id": "7eaef39f-0021-473d-8eb7-3e61f3ff7a20",
+      "name": "Past AI News Log",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "sendTo": "{{ $env.NEWS_DIGEST_EMAIL }}",
+        "subject": "Daily AI News Digest",
+        "message": "=Date: {{ $today }}\n\n{{ $json.output[0].content[0].text }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        96
+      ],
+      "id": "9870d8cf-aae0-4c9a-8b4a-18dba86bb24d",
+      "name": "Send a message",
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "News Checking Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Past AI News Log": {
+      "ai_tool": [
+        [
+          {
+            "node": "News Checking Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "News Checking Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
