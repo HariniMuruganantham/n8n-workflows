@@ -18,7 +18,7 @@ An AI-powered customer support system that automatically reads incoming Gmail me
 
 ## 🖼️ Workflow Diagram
 
-![Customer Support Workflow](Customer-Support-Service\Customer-support-service.png)
+![Customer Support Workflow](./Customer-support-service.png)
 
 ---
 
@@ -80,4 +80,5 @@ Turn the workflow toggle to **Active**.
 Send a test email to your connected Gmail inbox with a policy-related question.
 
 The workflow will automatically generate and reply with the correct policy answer.
+
 
