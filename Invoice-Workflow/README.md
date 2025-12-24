@@ -20,7 +20,7 @@ This workflow automatically detects new invoice PDFs uploaded to Google Drive, e
 
 ## 🖼️ Workflow Diagram
 
-![Invoice Workflow](Invoice-Workflow\Invoice-workflow.png)
+![Invoice Processing Workflow](./Invoice-workflow.png)
 
 ---
 
@@ -106,4 +106,5 @@ Upload a new invoice PDF to the connected Google Drive folder.
 You should see:
 - Invoice fields added to Google Sheet
 - Billing email sent automatically
+
 
