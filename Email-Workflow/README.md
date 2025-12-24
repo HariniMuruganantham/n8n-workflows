@@ -18,7 +18,8 @@ An AI-powered email assistant that listens for chat messages, intelligently comp
 
 ## 🖼️ Workflow Diagram
 
-![Email Workflow](Email-Workflow\Email-Workflow.png)
+![Email Automation Workflow](./Email-Workflow.png)
+
 
 ---
 
@@ -69,4 +70,5 @@ Send a mail to john@example.com about tomorrow's meeting at 10 AM.
 ```
 
 The workflow will automatically compose and send the email.
+
 
