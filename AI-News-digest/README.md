@@ -18,7 +18,8 @@ This workflow automatically collects the latest AI news every day, removes dupli
 
 ## 🖼️ Workflow Diagram
 
-![AI News Digest](n8n-workflows\AI-News-digest\AI-news-digest.png)
+![AI News Digest](./AI-news-digest.png)
+
 
 ---
 
@@ -117,3 +118,4 @@ Turn workflow toggle to **Active**.
 Click **Execute Workflow** once.
 
 You should receive the **AI News Digest email** in your inbox.
+
