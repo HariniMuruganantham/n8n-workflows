@@ -22,7 +22,7 @@ This workflow implements a **Retrieval-Augmented Generation (RAG)** system that 
 
 ## 🖼️ Workflow Diagram
 
-![RAG Workflow](RAG-&-Vectore-DB\RAG-&-vector-DB.png)
+![RAG Workflow](./RAG-&-vector-DB.png)
 
 ---
 
@@ -100,4 +100,5 @@ What is the cancellation policy?
 ```
 
 You will receive an answer from your private knowledge base.
+
 
